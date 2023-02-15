@@ -2,6 +2,7 @@
 const Product = require("./model");
 const path = require("path");
 const fs = require("fs");
+const { Op } = require("sequelize");
 
 const getAllData = async (req, res) => {
   const { search } = req.query;
@@ -40,6 +41,30 @@ const getAllDataByID = async (req, res) => {
   }
 };
 
+const destroyData = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findByPk(id);
+
+    if (product) {
+      await product.destroy();
+      return res.status(200).json({
+        message: `Produk dengan id ${id} berhasil dihapus`,
+      });
+    }
+
+    return res.status(404).json({
+      message: `Produk dengan id ${id} tidak ditemukan`,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: `Terjadi kesalahan pada server: ${error.message}`,
+    });
+  }
+};
+
 const postData = async (req, res) => {
   const { users_id, name, price, stock, status } = req.body;
   const image = req.file;
@@ -63,8 +88,38 @@ const postData = async (req, res) => {
   }
 };
 
+const updateData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price } = req.body;
+
+    const product = await Product.findByPk(id);
+
+    if (product) {
+      await product.update({
+        name: name,
+        price: price,
+      });
+      return res.status(200).json({
+        message: `Produk dengan id ${id} berhasil diupdate`,
+        product: product,
+      });
+    }
+    return res.status(404).json({
+      message: `Produk dengan id ${id} tidak ditemukan`,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: `Terjadi kesalahan pada server: ${error.message}`,
+    });
+  }
+};
+
 module.exports = {
   getAllData,
   getAllDataByID,
   postData,
+  updateData,
+  destroyData,
 };
